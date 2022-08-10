@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Personal website">
+	<meta name="author" content="Nicolas Barbeito">
+	<title>ncb.ar</title>
+	<style>
+		body {
+			margin-left: 2em;
+			margin-right: 2em;
+		}
+	</style>
+</head>
+
+<body>
+<pre><code>$ ed filename   # open the file &#39;filename&#39;
+</code></pre>
+
+<p>the contents of the file are copied to a buffer; if no file is provided, the buffer is empty.  changes are always applied to the buffer.  if changes are not saved, they are lost when closing the editor.</p>
+
+<p>there are several versions of ed, with slightly different arguments and commands; the <code>-G</code> argument runs gnu&#8217;s <code>ed</code> in compatibility mode.</p>
+
+<p>interacting with <code>ed</code> is similar to interacting with a shell.  a prompt is displayed while it reads lines from standar input.  if the input doesn&#8217;t match with a command, an error is returned.</p>
+
+<p>the default prompt is an empty string, but it can be changed using the <code>-p</code> option:</p>
+
+<pre><code>$ ed -p-  # use &#39;-&#39; as the prompt
+</code></pre>
+
+<h3 id="addresses">addresses</h3>
+
+<p>the user enters commands in the standard input.  most commands consist of only one line and are of the form:</p>
+
+<pre><code>[address[,address]]command[parameters]
+</code></pre>
+
+<p>the commands are applied to the lines given by the addresses.  an address can be:</p>
+
+<ul>
+<li><p>a positive number</p>
+
+<pre><code>1p  prints the first line of the buffer
+0p  error: 0 can&#39;t be printed
+1,4p    print lines 1 through 4
+2   set current 2 as the current line
+</code></pre></li>
+<li><p>a negative number counts backwards from the last line (so <code>-1</code> is <code>$-1</code>, that is, the previous line to the last; <code>-0</code> is <code>$</code>)</p>
+
+<pre><code># &#39;-&#39; is not the prompt, there is no prompt
+-0p print the last line
+-1p print the second-to-last
+</code></pre></li>
+<li><p><code>.</code> represents the current address; it is tracked by ed</p>
+
+<pre><code>.p  print the current line
+.   print the current line
+.,3p    print the lines between the current address and the third line
+d   delete the line in the current address
+</code></pre></li>
+<li><p><code>0</code> is a virtual line above all others.  it&#8217;s not posible to read or write into this address.  it is useful, for example, to write a line before the first one (that is, bellow <code>0</code>)</p>
+
+<pre><code>0p  error: 0 can&#39;t be printed
+0a  add text at the beggining of the buffer (the previous first line will be the second line.
+</code></pre></li>
+<li><p><code>$</code> is the last line in the buffer</p>
+
+<pre><code>1,$p    print the entire file
+1,$d    erase the content in the buffer
+</code></pre></li>
+</ul>
+
+<p>two addresses separatad by a comma represent the range of lines between them, with both ends included:</p>
+
+<pre><code>    1,2 first and second lines
+    1,$ all lines in the buffer
+</code></pre>
+
+<p>the second address has to be bigger than the first:</p>
+
+<pre><code>    3,1 error: 3 &#62; 1
+    1,1 first line
+    .,3 lines between the current address and the third line.
+        if &#39;.&#39; is bigger than 3, then the address is invalid
+</code></pre>
+
+<ul>
+<li><p>the symbols <code>+n</code> and <code>-n</code> refer to the nth line after and prior to the current address respectivly.</p>
+
+<pre><code>.n  # print the current line and its number
+3   # current address is 3
++2  # advance the current address two places
+5   # now current address is 5
+-2  # go back two places
+3   # now current address is 3
+-   # equivalent to -1
+2   # now current address is 2
++   # equivalent to +1
+3   # now current address is 3
+</code></pre></li>
+</ul>
+
+<p>. <code>&#47;re&#47;</code> search the line for a match to the regular expression <code>re</code>.  the search starts with the inmediate address after <code>.</code>, and wraps to the first line if it reaches the end of the buffer.  if a match is found, the current address is set to the matched line.</p>
+
+<pre><code>    a       # adding some lines to show &#47;re&#47; working
+    uno
+    dos
+    tres
+    cuatro      # the name of the line equals its address
+    .
+    2
+    dos     # &#39;.&#39; is set to 2
+    &#47;atr&#47;       # search for a line with the string &#39;atr&#39;
+    cuatro      # the 4th line contains &#39;atr&#39;
+    .n      # print current address along with the line address
+    4   cuatro  # &#39;.&#39; was set to 4, the matching line
+
+    &#47;o&#47;     # now search using &#47;o&#47;
+            # the search reaches the end and wraps
+            # to the first line
+    uno     # the line &#39;uno&#39; matches &#47;o&#47;
+    .n      # print current address
+    1   uno # current address is set to 1
+
+`&#47;re&#47;` matches the first line it finds and stops so, in the example above, the search stoped at line 1 even though line 2 (dos) 
+</code></pre>
+
+<p>also matches the pattern.</p>
+
+<ul>
+<li><p><code>?re?</code> the same as <code>&#47;re&#47;</code> but the search is backwards, wrapping to the last line when the fist line is reached.  it also 
+stops at the first match</p>
+
+<pre><code>a       # adding some lines to show ?re? working
+uno
+dos
+tres
+cuatro      # the name of the line equals its address
+.
+2
+dos         # &#39;.&#39; is set to 2
+?atr?       # search for a line with the string &#39;atr&#39;
+cuatro      # the 4th line contains &#39;atr&#39;
+.n          # print current address along with the line address
+4   cuatro  # &#39;.&#39; was set to 4, the matching line
+?o?     # search backwards for the pattern &#39;o&#39;
+dos     # second line matches the pattern
+.n
+2   dos # now the matched line is the 2nd,
+        # because the search started at the 4th line
+        # and proceeded backwards
+</code></pre></li>
+<li><p>it&#8217;s possible to mark lines in ed, so they can be referenced in future commands.  the marked lines are also valid addresses, 
+<code>&#39;lc</code> refers to the line marked with <code>lc</code>, where <code>lc</code> is a lowercase letter.</p>
+
+<pre><code>a       # adding some lines to show ?re? working
+uno
+dos
+tres
+cuatro      # the name of the line equals its address
+.
+2
+dos     # &#39;.&#39; is set to 2
+ka      # mark line 2 using a as a key
+&#39;an     # print line and address of the line marked as &#39;a&#39;
+2   dos # the line with key a is the second
+        # one, so &#39;.&#39; is set to 2
+&#39;ad     # delete the line marked with a
+,p      # print file to show the line was deleted
+uno
+dos
+tres
+</code></pre></li>
+</ul>
+
+<h3 id="commands">commands</h3>
+
+<p>commands cause ed to perform an action upon one or more lines.  if the user enters (at the prompt) an address followed by a letter matching a command, then the commands is executed on the addressed lines.  most commands have a default line to use if no address is provided.</p>
+
+<pre><code>    $ cat file
+    first line
+    second line
+    $ ed -G -p- file
+    39
+    -,p     # &#39;,&#39; is the entire file, and &#39;p&#39; is the print command
+            # it prints the lines especified by the address
+    first line
+    second line
+    -,n     # print the lines and the line numbers
+    1   first line
+    2   second line
+</code></pre>
+
+<p>in the list of commands below default lines are between <code>()</code>; for example <code>(.)p</code> means that the command <code>p</code> applies to the current line if no address is specified.  also, the prompt is set to <code>-</code>, when there is one, and the shell prompt is <code>$</code>.</p>
+
+<ul>
+<li><p><code>(.)a</code> adds lines entered by the user (after the command is entered) after the line addressed.  the lines are read from the standard input.  to go back to the prompt write a line containing only <code>.</code>.  the current address is set to the last line added.</p>
+
+<pre><code>-,p
+line 1
+line 2
+line 4
+-.p
+line 4
+-a      # add lines belw 3
+        # a accepts lines from stdin
+        # and adds them after the line in the address
+        # a &#39;.&#39; in a line by itself comes back to the prompt
+line 5
+line 6
+-.n     # print current address
+        # the current address is set to the last line entered
+5   line 6
+-,p     # print entire file
+line 1
+line 2
+line 4
+line 5
+line 6
+-2a     # add lines after &#39;2&#39;
+line 2
+&#39;a&#39; accepts more than one line
+.
+-,n
+1   line 1
+2   line 2
+3   line 3
+4   &#39;a&#39; accepts more than one line
+5   line 4
+6   line 5
+</code></pre></li>
+<li><p><code>(.)d</code> deletes the addressed lines from the buffer.  the current address is set to the line bellow the last deleted line, if one doesn&#8217;t exist, it is set to the las line above the deleted lines.</p>
+
+<pre><code>-,p     # print all lines in the file
+first line
+second line
+third line
+fourth line
+-1d     # delete first line
+-,p
+second line
+third line
+fourth line
+-3d     # delete line number 3
+-.p     # print current address
+third line  # the current address is one above the deleted range
+        # because there is no line after it
+-,p
+second line
+third line
+</code></pre></li>
+<li><p><code>(.)i</code> reads lines from stdin and adds them above the address.  the current line is set to the last one added.  entering a line with <code>.</code> by itself takes ed back to the prompt.  it behaves similarly to the <code>a</code> command, but inserts the lines above the address.</p></li>
+<li><p><code>(.,+)j</code> replaces the addressed lines by the line resulting of their concatenation.  the current address is set to the resulting line.</p>
+
+<pre><code>-,p
+uno
+dos
+tres
+-2
+dos
+-j  # join the default lines:
+-p  # the current address and the next (.,+)
+uno
+dostres # lines 2 and 3 were replaced by the line
+    # resulting of the join of line 2 and 3
+</code></pre></li>
+<li><p><code>(.)klc</code> sets a mark identified by the lowercase character <code>lc</code>.  marked lines can be refered to by <code>lc</code> in, for example, further commands.</p></li>
+<li><p><code>(.)i</code> prints the addressed lines raw</p>
+
+<pre><code>-,p
+año
+-,l
+a\303\261o
+</code></pre></li>
+<li><p><code>(.,.)m(.)</code> moves the addressed lines above the right hand side address.</p></li>
+<li><p><code>(.,.)n</code> prints the lines in the address with the line numbers.  the current line is set to the last line printed.</p></li>
+<li><p><code>(.,.)p</code> prints the lines in the address.  the current line is set to the last line printed.</p></li>
+<li><p><code>(.,.)s&#47;re&#47;replacement&#47;x</code> searches in the addressed lines for the <code>re</code> pattern one at a time and replaces it with <code>replacement</code>. if <code>x</code> is <code>g</code> then every match is replaced; if <code>x</code> is a positive integer <code>n</code>, then only the <code>n</code>th match is replaced; if <code>x</code> is not specified, only the first match is changed.  finding no matches is an error.  the current line is the last one affected.</p></li>
+</ul>
+
+<p>an unscaped <code>&#38;</code> in <code>replacement</code> is changed to the current match.  if <code>replacement</code> is <code>%</code> the one from the last substitution is used.  for <code>replacement</code> to contain a newline, it must be scaped with <code>\</code>.</p>
+
+<pre><code>    -,n
+    1   bla bla bla match match match bla
+    2   bla bla bla match match match bla
+    3   bla bla bla match match match bla
+    4   bla bla bla match match match bla
+    5   bla bla bla match match match bla
+    -1,2s&#47;match&#47;changed&#47;
+    -,n
+    1   bla bla bla changed match match bla
+    2   bla bla bla changed match match bla
+    3   bla bla bla match match match bla
+    4   bla bla bla match match match bla
+    5   bla bla bla match match match bla
+    -3,4s&#47;match&#47;changed&#47;g
+    -,n
+    1       bla bla bla changed match match bla
+    2       bla bla bla changed match match bla
+    3       bla bla bla changed changed changed bla
+    4       bla bla bla changed changed changed bla
+    5       bla bla bla match match match bla
+    -5s&#47;match&#47;changed&#47;3
+    -,n
+    1       bla bla bla changed match match bla
+    2       bla bla bla changed match match bla
+    3       bla bla bla changed changed changed bla
+    4       bla bla bla changed changed changed bla
+    5       bla bla bla match match match bla
+</code></pre>
+
+<ul>
+<li><p><code>(.,.)s</code> repeats the last substitution in the addressed lines.  the command may be modified by the sufixes <code>n</code>, <code>r</code>, <code>g</code> and <code>p</code>.  the suffix <code>n</code> makes the substitution happen only on the <code>n</code>th match.  the other three can be used in any combination: <code>r</code> uses the regular expression of the last seearch instead of the last substitution; <code>g</code> toogles the global mode in the last substitution; and <code>p</code> toogles the print mode of the last substitution.  the current address is set to the last one affected</p>
+
+<pre><code>-,n
+1   bla bla bla match match match bla
+2   bla bla bla match match match bla
+3   bla bla bla match match match bla
+4   bla bla bla match match match bla
+5   bla bla bla match match match bla
+-2,4s&#47;match&#47;changed&#47;3
+-,n
+1   bla bla bla match match match bla
+2   bla bla bla match match changed bla
+3   bla bla bla match match changed bla
+4   bla bla bla match match changed bla
+5   bla bla bla match match match bla
+-1s     # repeat last substitution on line 1
+-,n
+1   bla bla bla match match changed bla
+2   bla bla bla match match changed bla
+3   bla bla bla match match changed bla
+4   bla bla bla match match changed bla
+5   bla bla bla match match match bla
+-5sg        # on line 5 repeat the last substitution but
+        # toogle the global flag: last one didn&#39;t have
+        # the global flag so this time it will
+-,n
+1   bla bla bla match match changed bla
+2   bla bla bla match match changed bla
+3   bla bla bla match match changed bla
+4   bla bla bla match match changed bla
+5   bla bla bla changed changed changed bla
+</code></pre></li>
+<li><p><code>(.,.)t(.)</code> copies the addressed lines to after the right hand side address.  the current address is set to the last line copied.</p>
+
+<pre><code>-,n
+1   line 1
+2   line 2
+3   line 3
+4   line 4
+-2,3t0
+-,n
+1   line 2
+2   line 3
+3   line 1
+4   line 2
+5   line 3
+6   line 4
+</code></pre></li>
+<li><p><code>u</code> undoes the last command and sets the current line to the one previous to the last command.  the commands g, G, v, V are treated as one command.  <code>u</code> can undo itself.</p></li>
+<li><p><code>(1,$)g&#47;re&#47;command-list</code> it works as a for loop over all the lines matching the <code>re</code> regular expression.  the current address is set to each matching line in turn and then the command list is executed.  each command must be in a different line.  <code>G</code>, <code>g</code>, <code>V</code> and <code>v</code> can&#8217;t be on the command list.  if the list is empty, <code>p</code> is executed.  any change in line numbers (for example if a line is deleted) takes place before the next match is processed.  if there were no matches, the current address doesn&#8217;t change.</p>
+
+<pre><code>,n
+1   a uno
+2   b dos
+3   c tres
+4   d uno
+5   e dos
+6   f dos
+7   g tres
+g&#47;dos&#47;.n\
+d\
+.n
+        # first match (b dos)
+2   b dos   # .n prints the current line
+        # d deletes current line
+2   c tres  # .n prints current line (2)
+        # --------------------------
+        # second match (e dos)
+4   e dos   # .n: &#39;e dos&#39; is now line 4
+        # d deletes line 4: e dos
+        # .n prints line 4: f dos
+        # --------------------------
+        # third match (f dos)
+4   f dos   # .n: &#39;f dos&#39; is now line 4
+        # d deletes line 4: f dos
+4   g tres  # .n prints line 4: g tres
+        # no more matches
+</code></pre></li>
+<li><p><code>(1,$)G&#47;re&#47;command-list</code> similar to the <code>g</code> command, but interactive.  for each line matching the regular expression <code>re</code> the current address is set, the line is printed and the user can supply a list of commands, in the same format as with <code>g</code>.  arter the last matching line was proccessed, the current line is set to the last one modified.  <code>&#38;</code> repeats the last non-empty command.</p>
+
+<pre><code>,p
+match 1
+pass
+pass
+match 2
+pass
+match 3
+pass
+G&#47;match&#47;
+match 1    # match found, printed line, set as current address
+d          # delete the line
+match 2    # match found
+a\         # add a line below the match
+newline    # \ used for multiline command list and arguments
+match 3
+.c\        # replace matching line
+changed
+,n
+pass
+pass
+match 2
+newline
+pass
+changed
+pass
+</code></pre></li>
+<li><p><code>(1,$)v&#47;re&#47;command-list</code> same as <code>g</code> but it applies the commands to lines not matching <code>re</code>.</p></li>
+<li><p><code>(1,$)V&#47;re&#47;command-list</code> same as <code>G</code> but it applies the commands to lines not matching <code>re</code>.</p></li>
+<li><p><code>(1,$)w file</code> writes addressed lines to <code>file</code>.  if no file is specified the default is used; lines are writen to a file if one is specified, also it&#8217;s set as the defaul.  this command will erase the data in the file without warning.  the current address is not changed.</p></li>
+<li><p><code>(1,$)wq file</code> saves the addressed lines into <code>file</code> and then issues a <code>q</code> command.  if <code>q</code> triggers a warning, the current line is one after the addressed lines; if the last line in the buffer was among the lines copied, then current address is set to the last line in the buffer.</p>
+
+<pre><code>$ ls
+$ ed -G -p- ~&#47;some&#47;existing&#47;file
+-,p
+line 1
+line 2
+line 3
+.
+-w
+21
+-1,2w test
+14
+$ cat test
+line 1
+line 2
+</code></pre></li>
+<li><p><code>(1,$)w !command</code> executes <code>command</code> and passes the addressed lines to the stdin of the command.  the current address doesn&#8217;t change.</p>
+
+<pre><code>-,p
+how many words?
+-w !wc -w
+3       # the result of echo "how many words?" | wc -w
+16      # number of characters passed to the command
+-a
+now how many?
+what about now?
+.
+-,p
+how many words?
+now how many?
+what about now?
+-2,3w !wc -w
+6
+30
+</code></pre></li>
+<li><p><code>(1,$)W file</code> copies the lines in the address to the end of <code>file</code>.  the current address remains unchanged.</p>
+
+<pre><code>$ ls
+$ ed -G -p-
+-a
+line1
+line2
+.
+-,W test
+12
+-q
+$ ls
+test
+$ cat test
+line1
+line2
+$ ed -G -p-
+-a
+W appends at the end of the file
+it does not overwrites it
+.
+-,W test
+59
+-q
+$ cat test
+line1
+line2
+W appends at the end of the file
+it does not overwrites it
+$ ed -G -p-
+-a
+it&#39;s also possible to append
+some lines, not just the entire file
+for example, the first and last lines of this buffer
+won&#39;t be appended
+.
+- 2,3W test
+137
+-q
+$ cat test
+line1
+line2
+W appends at the end of the file
+it does not overwrites it
+some lines, not just the entire file
+for example, the first and last line
+</code></pre></li>
+<li><p><code>(+)zn</code> scrolls <code>n</code> lines at a time starting at the current address.  if n is not specified the current window size is used.  the current address is set to the last line printed.
+adding a <code>n</code> to the end prints the line numbers also, otherwise it just prints the lines.</p>
+
+<pre><code>-z10    # prints 10 lines starting whith the current address
+-z10n   # prints the same but it adds the line numbers
+-10z20  # prints 20 lines from line number 10 (included)
+-10z    # prints an entire window of lines from 10
+</code></pre></li>
+</ul>
+
+<p>the command <code>z</code> is useful for scrolling: repeated <code>z</code> commands prints succesive windows, effectivly navigating the buffer one screen at a time (which is called scrolling).</p>
+
+<ul>
+<li><p><code>($)= i</code> ??.</p></li>
+<li><p><code>(+)</code> an address without a command prints the addressed line and sets the current address to that line.  if no address is provided, the result is equivalent to a <code>+</code> address (the next line).</p>
+
+<pre><code>-,n # print line and line number
+1   one
+2   two
+3   three
+-1n
+1   one
+-+
+two
+-+
+three
+-1n
+1   one
+-++ # cumulative effect
+three   # advanced two lines fordward
+1
+one
+-
+two # a line by itself is equivalent to +
+-
+three
+</code></pre></li>
+<li><p><code>f file</code> sets the default file to <code>file</code>.  if the file is not specified it will print the default filename.</p></li>
+<li><p><code>E file</code> is the same as <code>e file</code> but it won&#8217;t print a warning if the buffer contains changes not saved to disk.</p></li>
+<li><p><code>e file</code> edits &#8216;file&#8217;, and sets the default filename to <code>file</code>.  if <code>file</code> is not specified, the default file is used.  the buffer prior to the command is erased and then the contents of <code>file</code> are copied to the buffer.  the current address is set to the last line copied.</p></li>
+<li><p><code>H</code> toogles the automatic printing of an explanation of the last error.  by default, the explanation is not printed.</p></li>
+<li><p><code>h</code> prints an explanation of the last error.</p></li>
+<li><p><code>P</code> toogles the command prompt on or off (off by default unless the <code>-p</code> option is used).</p></li>
+<li><p><code>q</code> quits ed.  if there are changes not saved to disk, the first <code>q</code> prints a warning, the second <code>q</code> closes the file without saving.</p></li>
+<li><p><code>Q</code> quits ed, even if there are changes not saved to disk.</p></li>
+<li><p><code>($)r file</code> copies the contents of <code>file</code> after the addressed line.  if a <code>file</code> is not specified, the default is used.  if there is not a default file set, <code>file</code> is used and set as default.  the default file is not changed if there was one before the command was issued.  the current address <code>.</code> is set to the last line copied.  it&#8217;s similar to <code>r !command</code> but with the file contents instead of the output of a command.</p></li>
+<li><p><code>($)r !command</code> copies the output of <code>!command</code> to after the line addressed.  the current address is set to the last line that was copied.</p>
+
+<pre><code>$ ls
+file1
+file2
+$ ed -G -p-
+-r !ls
+14
+-,p
+file1
+file2
+-0r !ls
+14
+file1
+file2
+file1
+file2
+</code></pre></li>
+<li><p><code>!command</code> executes <code>command</code> in the shell.  if the first character of <code>command</code> is <code>!</code> then it is replaced by text of the previous <code>!command</code>.</p>
+
+<pre><code>$ ls
+file1
+file2
+$ ed -G -p-
+-!ls
+file1
+file2
+!
+-!!
+ls
+file1
+file2
+!
+</code></pre></li>
+</ul>
+
+<h3 id="using%20ed">using ed</h3>
+
+<p>good properties:</p>
+
+<ul>
+<li><p>the startup and editing is extremely fast.</p></li>
+<li><p>adding, deleting and changing lines is very confortable and fast.</p></li>
+<li><p>navigating the buffer is not that bad, but it isn&#8217;t very confortable either; reading lines surrounding a specific line, for example the function containing a compiler error, requires thinking how many lines to read.  most others editors make this easier.</p></li>
+<li><p>scrolling is easy with the <code>z</code> command.</p></li>
+<li><p>the command syntax is very compact and elegant.</p></li>
+<li><p>no configuration, other than the prompt.  it works out of the box, with a </p></li>
+</ul>
+
+<h3 id="references">references</h3>
+
+<ul>
+<li><p>ed man from openbsd</p></li>
+<li><p>ed man from gnu ed</p></li>
+</ul>
+</body>
+</html>

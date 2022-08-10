@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Personal website">
+	<meta name="author" content="Nicolas Barbeito">
+	<title>ncb.ar</title>
+	<style>
+		body {
+			margin-left: 2em;
+			margin-right: 2em;
+		}
+	</style>
+</head>
+
+<body>
+<h1>SQL</h1>
+
+<p>The <strong>Structured Query Language</strong> (<a href="https://wikipedia.org/wiki/SQL">SQL</a>) is a standard declarative language used in relational database managers.</p>
+
+<p>A relational database, as we've seen already, is a set of relations and constraints. Usually, the mathematical definition is replaced by the more convenient and practical notion of tables, rows and columns; sql helps us interact with those concepts. We can create and delete tables, update or retrieve rows and much more.</p>
+
+<p>The sql model is not a perfect match of the relational model. One important deviation is that in sql a table is not a set of tuples, given that it allows repeated tuples, so it's more like a list of tuples.</p>
+
+<p>There are a lot of RDBMS, open source and/or commercial. I'll use <a href="https://sqlite.org">sqlite</a> since it's easy to install and use. It has a simple architecture: through a terminal program or a library, sql statements are interpreted and executed and all the data is stored in one file.</p>
+
+<h2>Tables and constraints</h2>
+
+<p>The fist thing needed to structure data following a relational paradigm are tables. In them, columns are defined which implement relation attributes, each one having a data type. To create a table in a database the <code>create table</code> statement is used.</p>
+
+<pre><code>create table books (
+  book_id integer primary key autoincrement,
+  title text not null
+);
+</code></pre>
+
+<p>This will create the table <code>books</code> with columns <code>book_id</code> and <code>title</code>. The first column was defined as an <code>integer</code> primary key. The <code>autoincrement</code> part means each new row will automatically get an unique integer. The second column, named <code>title</code>, is a <code>text</code> field and was defined as <code>not null</code>.</p>
+
+<p>When creating a table, it's possible to define several attributes as a primary key, by using <code>primary_key(attr_1,...,attr_n)</code>.</p>
+
+<p>To relate two tables, a column can be defined as a <strong><code>foreign key</code></strong>. For example</p>
+
+<pre><code>create table bookshop(
+    address text not null,
+    name text not null,
+    bs_id integer primary key autoincrement,
+    owner_id integer not null,
+    foreign key (owner_id)
+        references owner (owner_id)
+        on delete cascade
+        on update no action
+);
+</code></pre>
+
+<p>Here we created the <code>bookshop</code> table. This table has 4 columns: <code>address</code>, <code>name</code>, <code>bs_id</code> and <code>owner_id</code>. The most interesting one is the latter; the <code>foreign key (owner_id)</code> defines that column as a foreign key, <code>references owner (owner_id)</code> says that the foreign key in question (<code>owner_id</code>) points to the <code>owner_id</code> column in the <code>owner</code> table; the <code>on delete cascade</code> means that when the row the foreign key points to is deleted, the row storing the foreign key also gets deleted:</p>
+
+<pre><code>+---------------------------+
+|BOOKSHOP                   |
++-------+----+-----+--------+
+|address|name|bs_id|owner_id|
++-------+----+-----+--------+
+| ----  | -- |  1  |    2   |--+
++-------+----+-----+--------+  |   +--------------------+
+                               |   |OWNER               |
+                               |   +------+----+--------+
+                               |   |gender|name|owner_id|
+                               |   +------+----+--------+
+                               |   |  --  | -- |   1    |
+                               |   +------+----+--------+
+                               +-&gt; |  M   | -- |   2    |
+                                   +------+----+--------+
+</code></pre>
+
+<p>By defining a column as a foreign key, the database kowns that it has to enforce the <strong>referential integrity constraint</strong>. This means that every foreign key has to point to another existing row.</p>
+
+<p>Another possible constraint in a table is the <code>unique</code> constraint, which makes it impossible to have two rows with the same value in the <strong><code>unique</code></strong> attribute. Just as with <code>primary key</code>, <code>unique</code> can be used in several columns. When used in several columns, like</p>
+
+<pre><code>create table book (
+    book_id integer primary key autoincrement,
+    title text not null unique,
+        author_name text not null unique,
+        unique(title, author_name)
+);
+</code></pre>
+
+<p>it means that two rows can't have the same values in the <code>title</code> and <code>author_name</code> simultaneously. The <code>unique</code> constraint doesn't apply to the <code>null</code> value.</p>
+
+<p>The <strong><code>not null</code></strong> is a type of constraint in the values that an attribute can have. More general constraints can be defined by using <strong><code>check</code></strong>; it can be used following a column definition or after the columns were defined:</p>
+
+<pre><code>create table book (
+    book_id integer primary key autoincrement,
+    title text not null unique,
+    price real not null check(price &gt;= 0 and price &lt; 10000)
+);
+</code></pre>
+
+<p>or</p>
+
+<pre><code>create table book (
+    book_id integer primary key autoincrement,
+    title text not null unique,
+    price real not null check( and price &lt; 10000),
+        discount real not null,
+    check(price &gt;= 0 and discount &lt; price)
+);
+</code></pre>
+
+<p>The <strong><code>drop</code></strong> statement is used to remove a table from the database:</p>
+
+<pre><code>drop table table_name;
+</code></pre>
+
+<p>Some other operations could be needed before dropping the database: in sqlite3, the foreign key check has to be disabled and the foreign keys pointing to the to-be-dropped table changed to <code>null</code>.</p>
+
+<p>To change a table definition, <strong><code>alter table</code></strong> can be used. For example, to change a table name:</p>
+
+<pre><code>alter table table_name
+rename to new_name;
+</code></pre>
+
+<p>or to add another column to the table:</p>
+
+<pre><code>alter table table_name
+add column column_name type ...;
+</code></pre>
+
+<h2>SQL Data types</h2>
+
+<p>The values in the rows, it's attributes, have a type. A type is a set of possible values.</p>
+
+<p>This are the datatypes supported by the <code>sqlite3</code> database:</p>
+
+<ul>
+<li><code>null</code> represents a missing value</li>
+<li><code>integer</code> are integer numbers (0, 1, 2, 3,..., -1, -2, -3, ...)</li>
+<li><code>real</code> are floating point numbers</li>
+<li><code>text</code> is a string of characters, without maximum length</li>
+<li><code>blob</code> is a string of bits, without maximum length</li>
+</ul>
+
+<p>So, any attribute will be defined as one of those types. Other databases, like Postgres or MySQL, define different datatypes.</p>
+
+<p>In the sql standard, types can either be predefined, constructed or user defined. The <a href="https://wikipedia.org/wiki/SQL">predefined types</a> are:</p>
+
+<ul>
+<li><p>Character Types</p>
+
+<ul>
+<li>char (character)</li>
+<li>varchar (variable size characters)</li>
+<li>clob (character large object)</li>
+</ul></li>
+<li><p>Binary types</p>
+
+<ul>
+<li>binary</li>
+<li>varbinary (variable binary)</li>
+<li>binary large object (blob)</li>
+</ul></li>
+<li><p>Numeric Types</p>
+
+<ul>
+<li>numeric, decimal, smallint, integer, bigint (eact numeric tupes)</li>
+<li>float, real, double precision (exact numeric types)</li>
+</ul></li>
+<li><p>date, time, timestamp (Datetime Types)</p></li>
+<li><p>intervar (interval type)</p></li>
+<li><p>boolean</p></li>
+<li><p>xml</p></li>
+</ul>
+
+<h2>Changing and adding data</h2>
+
+<p>In sql adding data is made through the <strong><code>insert</code></strong> statement. Let's take the <code>book</code> table in the previous section:</p>
+
+<pre><code>    create table book (
+    book_id integer primary key autoincrement,
+    title text not null 
+);
+</code></pre>
+
+<p>Let's insert a row into that table:</p>
+
+<pre><code>insert into book (title, book_id) values ("Lord of the flies", 1);
+</code></pre>
+
+<p>And to add several rows in the same command:</p>
+
+<pre><code>insert into (title, book_id) values
+    ("The power and the glory", 2),
+    ("Gestarescala", 3),
+    ("Ubik", 4),
+    ("Slaughterhouse 5", 5),
+    ("1984", 6),
+    ("Animal Farm", 7),
+    ("In cold blood", 8),
+    ("After dark", 9),
+    ("Sobre heroes y tumbas", 10),
+    ("El túnel", 11),
+    ("La invención de morel", 12),
+    ("Diario de la guerra del cerdo", 13);
+</code></pre>
+
+<p>The values to <code>insert</code> can be taken from another table by using <code>select</code>:</p>
+
+<pre><code>insert into table_name
+    [(column,..., column)]
+select statement;
+</code></pre>
+
+<p>For example, let's assume we have a table <code>book2</code> which contains book titles and author names; then we decided to split those tables into two: a <code>book</code> table and an <code>author</code> table, to accomodate the requirement that some books could have more than one author. To accomplish that, after creating the tables, we could fill the <code>book</code> table by using</p>
+
+<pre><code>insert into book(title)
+select title from book2;
+</code></pre>
+
+<p>which will fill the table <code>book</code> with the titles from <code>book2</code>.</p>
+
+<p>If instead of adding new rows, we need to change existing ones, the <strong><code>update</code></strong> statement is used:</p>
+
+<pre><code>update table_name
+set column=expression,..., column=expression
+[where condition];
+</code></pre>
+
+<p>So, for changing the title of a book, we could do:</p>
+
+<pre><code>update book
+set title = "1984"
+where title = "1985";
+</code></pre>
+
+<p>For deleting one or several rows there's a statement called <strong><code>delete</code></strong>:</p>
+
+<pre><code>delete from table_name
+[where condition];
+</code></pre>
+
+<p>Let's remove all books with an empty title, since they are probably mistakes:</p>
+
+<pre><code>delete from book
+where title = '';
+</code></pre>
+
+<p><strong>Be careful</strong>: if no <code>where</code> condition filters the selection all the rows are deleted.</p>
+
+<h2>Example database</h2>
+
+<p>In order to show how to retrieve data, this section introduces an example database.</p>
+
+<p>We're going to model a book selling tool. Bookshops can sign up to sell books and clients can buy them and leave reviews (one per book). Each bookshop will have a unique owner. Each book can have one or more authors. Let's create an Entity Relational Model with this information:</p>
+
+<pre><code>(gender, name, _owner_id_)                  (gender, name, _author_id_)
+|                          wrote         m  |
++-----+                     /\--------------+------+
+|Owner| (title, _book_id_)  \/              |Author|
++-----+                  |  |               +------+
+  |n       (price)       |  |n
+  |        |             +----+                   +------+
+  /\owns   |  bought    m|Book|0   reviewed_by    |Review|
+  \/       ---/\---------+----+--------/\---------+------+
+  |           \/        0       1      \/      1         |
+  |m      0   ||                       |             (text, _rev_id_)
++--------+----++---------+0           0|1     
+|BookShop|p             n| +------+----+           +-------+
++--------+               +-|Client|-----------/\---|Profile|--(_profile_id_, bio, website, phone)
+|                          +------+ 1         \/  1+-------+
+(address, name, _bs_id_)          |
+                                  (gender, name, _client_id_, email)
+</code></pre>
+
+<p>And the Relational Model</p>
+
+<pre><code>BOOK(title, _book_id_)
+
+AUTHOR(gender, name, _author_id_)
+
+REVIEW(time, text, _rev_id_)
+
+PROFILE(_profile_id_, bio, website, phone)
+
+CLIENT(gender, name, email, _client_id_, *profile)
+
+BOOKSHOP(address, name, _bs_id_, *owner_id)
+
+OWNER(gender, name, _owner_id_)
+
+WRITTEN_BY([*book_id, *author_id])
+
+SELLS([*book_id, *bs_id], stock)
+
+BOUGHT([*bs_id, *client_id, *book_id], price)
+
+REVIEWED_BY([*rev_id, *book_id, *client_id])
+</code></pre>
+
+<p>To implement this in a relational database, we just need to create a table for each one of the schemas and add the appropriate constraints.</p>
+
+<p>The following code implements that model in <code>sqlite3</code>:</p>
+
+<pre><code>create table book(
+    title text not null,
+    book_id integer primary key autoincrement
+);
+
+insert into book (title, book_id) values
+    ("Lord of the flies", 1),
+    ("The power and the glory", 2),
+    ("Gestarescala", 3),
+    ("Ubik", 4),
+    ("Slaughterhouse 5", 5),
+    ("1984", 6),
+    ("Animal Farm", 7),
+    ("In cold blood", 8),
+    ("After dark", 9),
+    ("Sobre heroes y tumbas", 10),
+    ("El túnel", 11),
+    ("La invención de morel", 12),
+    ("Diario de la guerra del cerdo", 13);
+
+
+create table author(
+    gender text not null,
+    name text not null,
+    author_id integer primary key autoincrement
+);
+
+insert into author (gender, name, author_id) values
+    ("M", "Graham Greene", 1),
+    ("M", "Philip K. Dick", 2),
+    ("M", "Kurt Vonnegut", 3),
+    ("M", "George Orwell", 4),
+    ("M", "William Golding", 5),
+    ("M", "Truman Capote", 6),
+    ("M", "Haruki Murakami", 7),
+    ("M", "Ernesto Sábato", 8),
+    ("M", "Adolfo Bioy Casares", 9);
+
+
+create table owner(
+    gender text not null,
+    name text not null,
+    owner_id integer primary key autoincrement
+);
+
+insert into owner (gender, name, owner_id) values
+    ("M", "Jorge Luis Borges", 1),
+    ("F", "Beverly Atlee Clearly", 2),
+    ("M", "Jorge of Burgos", 3);
+
+
+create table profile(
+    profile_id integer primary key autoincrement,
+    website text not null default "",
+    phone text not null default "",
+    bio text not null default ""
+);
+
+insert into profile (website, phone, bio) values
+    ("", "", ""),
+    ("", "", ""),
+    ("", "", "");
+
+
+create table client(
+    gender text not null,
+    name text not null,
+    email text not null unique,
+    client_id integer primary key autoincrement,
+    profile integer not null,
+    foreign key (profile)
+        references profile (profile_id)
+        on delete cascade
+        on update no action
+);
+
+
+insert into client (gender, name, client_id, email, profile) values
+    ("M", "Umberto Eco", 1, "umberto@echo.com", 1),
+    ("M", "Gary Stu", 2, "gary@stu.com", 2),
+    ("F", "Mary Sue", 3, "mary@sue.com", 3);
+
+
+create table review(
+    time text not null,
+    text text not null,
+    rev_id integer primary key autoincrement
+);
+
+insert into review (time, text, rev_id) values
+    ("2020-05-021 21:05:00.000", "Very good!", 1),
+    ("2020-05-021 21:06:00.000", "Not very good...", 2),
+    ("2020-05-021 21:07:00.000", "Excelent.", 3),
+    ("2020-05-021 21:08:00.000", "Recommended.", 4);
+
+
+create table bookshop(
+    address text not null,
+    name text not null,
+    bs_id integer primary key autoincrement,
+    owner_id integer not null,
+    foreign key (owner_id)
+        references owner (owner_id)
+        on delete cascade
+        on update no action
+);
+
+insert into bookshop (address, name, bs_id, owner_id) values
+    ("Buenos Aires", "El Ateneo", 1, 1),
+    ("New York City", "The Strand", 2, 2),
+    ("Greece", "Atlantis Books", 3, 3),
+    ("Porto", "Livraria Lello", 4, 3);
+
+
+create table written_by(
+    book_id integer not null,
+    author_id integer not null,
+    primary key (book_id, author_id),
+    foreign key (book_id)
+        references book (book_id),
+    foreign key (author_id)
+        references author (author_id)
+);
+
+insert into written_by (book_id, author_id) values
+    (1, 5),
+    (2, 1),
+    (3, 2),
+    (4, 2),
+    (5, 3),
+    (6, 4),
+    (7, 4),
+    (8, 6),
+    (9, 7),
+    (10, 8),
+    (11, 8),
+    (12, 9),
+    (13, 9);
+
+
+create table sells(
+    book_id integer not null,
+    bs_id integer not null,
+    stock integer not null,
+    foreign key (bs_id)
+        references bookshop (bs_id)
+        on delete cascade
+        on update no action,
+    foreign key (book_id)
+        references book (book_id)
+        on delete cascade
+        on update no action,
+    primary key (book_id, bs_id)
+);
+
+insert into sells (book_id, bs_id, stock) values
+    (1, 1, 100),
+    (2, 2, 52),
+    (3, 2, 60),
+    (4, 1, 45),
+    (5, 4, 123),
+    (6, 4, 164),
+    (7, 3, 200);
+
+
+create table bought (
+    bs_id integer not null,
+    client_id integer not null,
+    book_id integer not null,
+    price integer not null,
+    primary key(bs_id, client_id, book_id)
+    foreign key (bs_id)
+        references bookshop (bs_id)
+        on delete cascade
+        on update no action,
+    foreign key (book_id)
+        references book (book_id)
+        on delete cascade
+        on update no action,
+    foreign key (client_id)
+        references client (book_id)
+        on delete cascade
+        on update no action
+);
+
+insert into bought (bs_id, client_id, book_id, price) values
+    (1, 1, 1, 50),
+    (2, 1, 2, 34),
+    (3, 2, 7, 25),
+    (4, 3, 3, 63),
+    (1, 1, 2, 12),
+    (2, 2, 3, 76),
+    (3, 2, 12, 34),
+    (4, 3, 12, 44),
+    (1, 3, 3, 98),
+    (2, 1, 12, 21),
+    (3, 2, 10, 45),
+    (4, 3, 5, 67);
+
+
+create table reviewed_by(
+    rev_id integer not null,
+    book_id integer not null,
+    client_id integer not null,
+    primary key (rev_id, book_id, client_id),
+    foreign key (rev_id)
+        references review (rev_id)
+        on delete cascade
+        on update no action,
+    foreign key (book_id)
+        references book (book_id)
+        on delete cascade
+        on update no action,
+    foreign key (client_id)
+        references client (client_id)
+        on delete cascade
+        on update no action
+);
+
+insert into reviewed_by (rev_id, book_id, client_id) values
+    (1, 1, 1),
+    (2, 3, 2),
+    (3, 4, 1),
+    (4, 5, 4);
+</code></pre>
+
+<p>To run this code with the <code>sqlite3</code> client, save the code into a file, let's say <code>db.sql</code> and run</p>
+
+<pre><code>sqlite3 db.db &lt; db.sql
+</code></pre>
+
+<p>it will create the <code>db.db</code> file containing the database. I'll be using this database to illustrate sql concepts.</p>
+
+<h2>Querying the database</h2>
+
+<p>Just as in relational algebra, getting information from a relational database involves composing transformations to groups of tables.</p>
+
+<p>The most fundamental query statement is <strong><code>select</code></strong>:</p>
+
+<pre><code>select [all|distinct] column_list
+from table_name alias [table_name alias,..., table_name alias]
+[where condition]
+[group by column list]
+[having condition]
+[order by column_name [asc|desc]];
+</code></pre>
+
+<p>As explained before, the <code>select</code> statement basically does a <code>σ(π)</code> in relational algebra. For example:</p>
+
+<pre><code>select name, client_id
+from client c
+where c.gender = 'F';
+</code></pre>
+
+<p>means retrieving all the female clients' names and database id's saved in the database. In relational algebra we would do</p>
+
+<pre><code>π[name, client_id](σ[gender = 'F'](client))
+</code></pre>
+
+<p>which would return a table with two columns, <code>name</code> and <code>client_id</code>:</p>
+
+<pre><code>Mary Sue|3
+</code></pre>
+
+<p>And if we filter by male clients, by doing</p>
+
+<pre><code>select name, client_id
+from client c
+where c.gender = 'M';
+</code></pre>
+
+<p>we get</p>
+
+<pre><code>Umberto Eco|1
+Gary Stu|2
+</code></pre>
+
+<p>The <code>where</code> part on sql statements filters rows according to some comparison, it works like the <code>σ</code> in relational algebra. Its form is:</p>
+
+<pre><code>expression comparison_operator expression
+</code></pre>
+
+<p>where <code>comparison_operator</code> can be <code>=</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> or <code>&gt;=</code>. Also, they can be joined by logical operators <code>and</code>, <code>or</code>, etc.:</p>
+
+<pre><code>expression1 comparison_operator expression2 logical_op
+expression3 comparison_operator expression4 ...
+</code></pre>
+
+<p>By adding <strong><code>distinct</code></strong> to the clause, you avoid repeated tuples from appearing:</p>
+
+<pre><code>select distinct name, client_id
+from client c
+where c.gender = 'M';
+</code></pre>
+
+<p>If there's no <code>where</code> condition, then there's no filter, so all the rows are used. If more than one table is specified in the <code>from</code>, then the cartessian product is taken.</p>
+
+<p>The order in which the results appear respect the order in the original table, but by using <strong><code>order by</code></strong> you can sort the result:</p>
+
+<pre><code>select name, client_id
+from client c
+where c.gender = 'M'
+order by name;
+</code></pre>
+
+<p>You can also set the order to ascending or descending, by using <code>asc</code> or <code>desc</code> respectively.</p>
+
+<p>The <code>null</code> value is a bit special in comparisons, since <code>null</code> could mean unknown, every comparison will going to return <code>null</code>. This needs a three value logic:</p>
+
+<pre><code>+-----+------+-------+------+
+| AND | true | false | null |
++-----+------+-------+------+
+|true | true | false | null |
++-----+------+-------+------+
+|false| false| false | false|
++-----+------+-------+------+
+|null | null | false | null |
++-----+------+-------+------+
+
++-----+------+-------+------+
+| OR  | true | false | null |
++-----+------+-------+------+
+|true | true | true  | null |
++-----+------+-------+------+
+|false| true | false | false|
++-----+------+-------+------+
+|null | true | null  | null |
++-----+------+-------+------+
+
++-----+------+
+| NOT |      |
++-----+------+
+|true | false|
++-----+------+
+|false| true |
++-----+------+
+|null | null |
++-----+------+
+</code></pre>
+
+<h2>Joins</h2>
+
+<p>The relations between tables are very important for the relational model. It's very usual that a query involves two or more tables related through foreign keys. For example, if we want a list of the books an author wrote, we need to involve three tables: <code>book</code>, <code>author</code> and <code>written_by</code>.</p>
+
+<p>Lets get all the books written by Philip K. Dick. Since we didn't define the <code>name</code> field as a <code>primary key</code> or <code>unique</code>, we can't use the name to look for it, so, let's use <code>author_id</code> (in this case, the value is 2). We'll take the <code>written by</code> table and the <code>book</code> table, then filter the cartesian product between both by keeping only those rows with the same <code>author_id</code> field.</p>
+
+<pre><code>select b.title
+from written_by w, book b
+where w.author = 2 AND w.book_id = b.book_id;
+</code></pre>
+
+<p>which gives back</p>
+
+<pre><code>Gestarescala
+Ubik
+</code></pre>
+
+<p>Another common pattern is joining two tables to get a list of the relationship tuples. For example, let's get all the tuples of the <code>owns</code> relationship:</p>
+
+<pre><code>select o.name, b.name
+from owner o, bookshop b
+where o.owner_id = b.owner_id;
+</code></pre>
+
+<p>getting the answer</p>
+
+<pre><code>Jorge Luis Borges|El Ateneo
+Beverly Atlee Clearly|The Strand
+Jorge of Burgos|Atlantis Books
+Jorge of Burgos|Livraria Lello
+</code></pre>
+
+<p>This pattern is so useful and common that it has its own name: an <code>inner join</code>:</p>
+
+<pre><code>select o.name, b.name
+from owner o inner join bookshop b on o.owner_id = b.owner_id;
+</code></pre>
+
+<p>which gives the same result:</p>
+
+<pre><code>Jorge Luis Borges|El Ateneo
+Beverly Atlee Clearly|The Strand
+Jorge of Burgos|Atlantis Books
+Jorge of Burgos|Livraria Lello
+</code></pre>
+
+<p>The last <code>on o.owner_id = b.owner_id</code> can be replaced by <code>using(owner_id)</code> as a simplification.</p>
+
+<p>That operation is called an inner join. <code>sqlite3</code> supports two other kinds of joins: <strong>left join</strong> and <strong>cross join</strong>. For example, if we add an owner without a bookstore pointing to it, for example:</p>
+
+<pre><code>insert into owner(gender, name) values
+    ("F", "No One");
+</code></pre>
+
+<p>Now, applying a left join:</p>
+
+<pre><code>select o.name, b.name
+from owner o left join bookshop b using(owner_id);
+</code></pre>
+
+<p>which results in</p>
+
+<pre><code>Jorge Luis Borges|El Ateneo
+Beverly Atlee Clearly|The Strand
+Jorge of Burgos|Atlantis Books
+Jorge of Burgos|Livraria Lello
+No One|
+</code></pre>
+
+<p>Note that the owner No One has a <code>null</code> in the corresponding column in the right side of the join, that is, <code>bookshop</code>.</p>
+
+<p>The <strong>cross join</strong> is the equivalent of the cartesian product. For example:</p>
+
+<pre><code>select *
+from client
+cross join booksreview;
+</code></pre>
+
+<p>gives the not very useful result:</p>
+
+<pre><code>M|Umberto Eco|1|2020-05-021 21:05:00.000|Very good!|1
+M|Umberto Eco|1|2020-05-021 21:06:00.000|Not very good...|2
+M|Umberto Eco|1|2020-05-021 21:07:00.000|Excelent.|3
+M|Umberto Eco|1|2020-05-021 21:08:00.000|Recommended.|4
+M|Gary Stu|2|2020-05-021 21:05:00.000|Very good!|1
+M|Gary Stu|2|2020-05-021 21:06:00.000|Not very good...|2
+M|Gary Stu|2|2020-05-021 21:07:00.000|Excelent.|3
+M|Gary Stu|2|2020-05-021 21:08:00.000|Recommended.|4
+F|Mary Sue|3|2020-05-021 21:05:00.000|Very good!|1
+F|Mary Sue|3|2020-05-021 21:06:00.000|Not very good...|2
+F|Mary Sue|3|2020-05-021 21:07:00.000|Excelent.|3
+F|Mary Sue|3|2020-05-021 21:08:00.000|Recommended.|4
+</code></pre>
+
+<p>There are other kinds of joins, such as the full outer join, which puts a null in the rows which don't match, be it right or left. <code>sqlite3</code> doesn't implement this type of join.</p>
+
+<h2>Set Operations</h2>
+
+<p>There are three set operations implemented in <code>sqlite3</code>: <code>union</code>, <code>except</code> and <code>intersect</code>. The <strong><code>union</code></strong> operator combines the result from two querys into a single table. For this to be possible, the two querys have to be compatible, that is, they have the same amount of columns and each column have the same types (or types which can be casted to the other).</p>
+
+<p>There are two versions of the <code>union</code> operator: <code>union</code> and <code>union all</code>. The first one gets rid of repeated rows, while the second doesn't.</p>
+
+<p>Let's use <code>union</code> to get all the names of the authors, clients and owners in our database:</p>
+
+<pre><code>select name from author union select name from client union select name from owner;
+
+Adolfo Bioy Casares
+Beverly Atlee Clearly
+Ernesto Sábato
+Gary Stu
+George Orwell
+Graham Greene
+Haruki Murakami
+Jorge Luis Borges
+Jorge of Burgos
+Kurt Vonnegut
+Mary Sue
+Philip K. Dick
+Truman Capote
+Umberto Eco
+William Golding
+</code></pre>
+
+<p>The <strong><code>intersect</code></strong> operation takes the result of two querys and returns those rows which occur in both querys. Again, the result of the querys have to be compatible in the same way as before. Let's change the last query but using <code>intersect</code>:</p>
+
+<pre><code>select name from author union select name from client union select name from owner;
+</code></pre>
+
+<p>The result is empty since no row is repeated.</p>
+
+<p>The <strong><code>except</code></strong> operator is similar to the set difference: given two querys <code>A</code> and <code>B</code>, <code>A except B</code> returns the rows in <code>A</code> that are not in <code>B</code>. For example:</p>
+
+<pre><code>select name from author except select name from client;
+
+Adolfo Bioy Casares
+Ernesto Sábato
+George Orwell
+Graham Greene
+Haruki Murakami
+Kurt Vonnegut
+Philip K. Dick
+Truman Capote
+William Golding
+</code></pre>
+
+<h2>Views</h2>
+
+<p>A view is an abstract table constructed as a <code>select</code> query. When reading the data in a view, the client is actually reading the result of a query on actual tables (called base tables).</p>
+
+<p>A view can be defined in <code>sqlite3</code> as:</p>
+
+<pre><code>create view authors_and_books as
+select book_id, author_id, title, name
+from written_by
+inner join book using(book_id)
+inner join author using(author_id);
+</code></pre>
+
+<p>The <code>authors_and_books</code> table represents the result of the two joins which, of course, is also a table. The view can be queried:</p>
+
+<pre><code>select * from authors_and_books;
+</code></pre>
+
+<p>returns the same rows as</p>
+
+<pre><code>select book_id, author_id, title, name
+from written_by
+inner join book using(book_id)
+inner join author using(author_id);
+
+1|5|Lord of the flies|William Golding
+2|1|The power and the glory|Graham Greene
+3|2|Gestarescala|Philip K. Dick
+4|2|Ubik|Philip K. Dick
+5|3|Slaughterhouse 5|Kurt Vonnegut
+6|4|1984|George Orwell
+7|4|Animal Farm|George Orwell
+8|6|In cold blood|Truman Capote
+9|7|After dark|Haruki Murakami
+10|8|Sobre heroes y tumbas|Ernesto Sábato
+11|8|El túnel|Ernesto Sábato
+12|9|La invención de morel|Adolfo Bioy Casares
+13|9|Diario de la guerra del cerdo|Adolfo Bioy Casares
+</code></pre>
+
+<p>The view concept gives a lot of flexibility. For example, we can query the view in a simple line to repeat the search for all of Philip K. Dick books in our database:</p>
+
+<pre><code>select title from authors_and_books
+where author_id = 2;
+
+Gestarescala
+Ubik
+</code></pre>
+
+<h2>Functions and Triggers</h2>
+
+<p>The following model is taken from the database example</p>
+
+<pre><code>                         (_profile_id_, bio, website, phone)
+                         |
++------+                +-------+
+|Client|-----------/\---|Profile|
++------+ 1         \/  1+-------+
+   |
+(gender, name, _client_id_, email)
+</code></pre>
+
+<p>It states that for every <code>Client</code> there's a <code>Profile</code>. So, if a <code>Client</code> is added to the database, a <code>Profile</code> needs to be added first. The software client which is using the database, such as a web application, needs to be aware of this and follow those steps.</p>
+
+<p>Another approach is to tell the database manager to do it automatically, using a <strong>trigger</strong>. A trigger is a programmed response to an event in a database table that executes a series of statements. An event can be an <code>update</code>, <code>insert</code> or <code>delete</code> operation. Triggers are associated to tables, that is, they are activated when modifications happen on certain  table. The trigger statements can be executed <code>before</code>, <code>after</code> or <code>instead of</code> the event.</p>
+
+<p>In the case above, the trigger has to be fired when a new <code>Client</code> is created, which corresponds with an <code>insert into client</code> statement. To create the trigger:</p>
+
+<pre><code>create trigger create_profile_for_new_user after insert on client begin
+insert into profile(website, phone, bio) values ("created", "in the", "trigger!");
+update client set profile=last_insert_rowid() where client_id = new.client_id;
+end;
+</code></pre>
+
+<p>The <code>last_insert_rowid()</code> is a function provided by <code>sqlite3</code> which returns the row id of the most recently inserted row in the current conection. Let's test it by creating a new <code>Client</code></p>
+
+<pre><code>insert into client (gender, name, email, profile) values ('', 'new', 'new@user.com', null);
+</code></pre>
+
+<p>and querying to see if the corresponding profile was created</p>
+
+<pre><code>select c.name, p.website, p.phone, p.bio from client c inner join profile p on c.profile = p.profile_id;
+Umberto Eco|||
+Gary Stu|||
+Mary Sue|||
+new|created|in the|trigger!
+</code></pre>
+
+<p>The <code>Cient</code> allows a <code>null</code> value in the <code>profile</code> column, which we don't actually want, since it has total participation. This choice was taken because <code>sqlite3</code> lacks the <code>instead of</code> trigger in a table, so we need to let the database create a record for the user first, using <code>null</code> in profile and then the trigger fixes it. Another solution could be to store a foreign key to <code>Client</code> in <code>Profile</code> instead of the other way arround; but the <code>Profile</code> table has the potential to be used by other tables, such as <code>Author</code> or <code>Owner</code>, so the design is more extensible this way.</p>
+
+<h1>Transactions</h1>
+
+<p>A <a href="https://wikipedia.org/wiki/Database_transaction">transaction</a> is an undivisable unit of work in a database. A set of operations can be made atomic by wrapping them in a transaction so they will be performed as if they were inseparable; if one fails the entire operation fails and the database is unchanged.</p>
+
+<p>There are four properties a database has to implement in its transactions (collectively known as ACID):</p>
+
+<ul>
+<li><p>Atomic: all operations within a transaction are executed as if they were one. If one fails, the database remains unchanged and if the transaction ends succesfully all operations were performed.</p></li>
+<li><p>Consistent: changes produced by the operations inside a transaction doesn't leave the database in an inconsistent state.</p></li>
+<li><p>Islation: transactions are isolated from each other and can be performed concurrently (one doesn't collide with the other).</p></li>
+<li><p>Durable: the changes in the database produced by the operations within a successful transaction are stored in the database permanently.</p></li>
+</ul>
+
+<p>In <code>sqlite3</code> most sql statements are implicitly wrapped inside a transaction. The ones involving write operations can be done one at a time, but the ones only reading data can be executed simultaneously.</p>
+
+<p>To create a transaction in <code>sqlite3</code>, wrap the statements you want to be atomic between <code>begin transaction</code> and <code>commit transaction</code>. A classical example is transfering an amount from one account to another:</p>
+
+<pre><code>create table account (
+    account_id integer not null primary key,
+    balance real not null default 0,
+    check(balance &gt;= 0)
+);
+
+begin transaction
+    update account
+    set balance = balance - 100
+    where account_id = 1;
+
+    update account
+    set balance = balance + 100
+    where account_id = 2;
+commit transaction
+</code></pre>
+
+<p>If the operations in this simple example wouldn't be inside a transaction, another client trying to interact with the same rows could create a concurrency problem.</p>
+</body>
+</html>
