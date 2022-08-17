@@ -49,45 +49,45 @@ later be attached again to the same or other clients.
 </p>
 
 <ul>
-	<li><pre>tmux</pre> launches the server 
+	<li><code>tmux</code> launches the server 
 		and creates a client with a session attached, a window and a pan</li>
 
-	<li><pre>kill-session -t session_name</pre> kills session 
-		named <pre>session_name</pre> </li>
+	<li><code>kill-session -t session_name</code> kills session 
+		named <code>session_name</code> </li>
 
-	<li><pre>kill-session -a</pre> kills all sessions except the current</li>
+	<li><code>kill-session -a</code> kills all sessions except the current</li>
 
-	<li><pre>kill-session -a -t session</pre>  kills all sessions
+	<li><code>kill-session -a -t session</code>  kills all sessions
 		except session</li>
 
-	<li><pre>ls</pre> lists all the sessions</li>
+	<li><code>ls</code> lists all the sessions</li>
 
-	<li><pre>new -s session -n window</pre> creates a new session 
+	<li><code>new -s session -n window</code> creates a new session 
 		of name session and a window with name window</li>
 
-	<li><pre>info</pre> displays information about
+	<li><code>info</code> displays information about
 		sessions, windows, panes, etc.</li>
 </ul>
 
 <p>each client shows a status line on the bottom line of the screen:</p>
 
 <p>
-<pre>[0] 0:ash- 1:ash 2:nano*      "localhost" 02:17 28-Feb-22</pre>
+<code>[0] 0:ash- 1:ash 2:nano*      "localhost" 02:17 28-Feb-22</code>
 </p>
 
 <p>
-the <pre>[N]</pre> at the left contains the session number;
+the <code>[N]</code> at the left contains the session number;
 it's followed by a list of the windows in the session 
-using the format<pre> index:name</pre>;
-a <pre>*</pre> marks the active windows.
+using the format<code> index:name</code>;
+a <code>*</code> marks the active windows.
 </p>
 
 <p>
-<pre>tmux</pre> clients have a set of predefined functions.
+<code>tmux</code> clients have a set of predefined functions.
 users can use them in the command prompt or key bindings.
 the command prompt appears in the bottom line of the active window,
 temporarily in place of the status bar,
-when activated by <pre>ctrl-b :</pre>.
+when activated by <code>ctrl-b :</code>.
 to call a function, its name is typed into the prompt
 along with its arguments and then pressing enter.
 the status bar returns after the function ends.
@@ -95,10 +95,10 @@ the status bar returns after the function ends.
 
 <p>
 each function can be invoked by a keybinding,
-of the form <pre>ctrl-b s</pre> where <pre>ctrl-b</pre>
+of the form <code>ctrl-b s</code> where <code>ctrl-b</code>
 means pressing the control key and b, releasing them at the same time,
-and <pre>s</pre> is a string of characters
-(for example <pre>ctrl-b c</pre>).
+and <code>s</code> is a string of characters
+(for example <code>ctrl-b c</code>).
 </p>
 
 <p>
@@ -108,50 +108,50 @@ the bottom line changes to the promp temporarily.
 </p>
 
 <p>
-key bindings are prefixed by <pre>ctrl-b</pre> by default.
-the commands starting with <pre>:</pre> are used in the command prompt.
+key bindings are prefixed by <code>ctrl-b</code> by default.
+the commands starting with <code>:</code> are used in the command prompt.
 </p>
 
 <ul>
-	<li><pre>?</pre> list key bindings
-	<li><pre>:list-keys</pre> list key bindings
-	<li><pre>(</pre> move to previous session
-	<li><pre>)</pre> move to next session
-	<li><pre>:kill-server</pre>  kill tmux server
-	<li> <pre>c</pre> create window</li>
-	<li> <pre>, </pre>rename current window</li>
-	<li> <pre>& </pre>close current window</li>
-	<li> <pre>p </pre>previous window</li>
-	<li> <pre>n </pre>next window</li>
-	<li> <pre>0...9</pre> selects window of index <pre>0...9</pre></li>
-	<li> <pre>l </pre>toogle last active window</li>
-	<li> <pre>:swap-window -s src -t dst</pre> swaps windows 
-		of index <pre>src</pre> and <pre>dst</pre></li>
-	<li> <pre>:swap-window -t -1´</pre> moves current window
+	<li><code>?</code> list key bindings
+	<li><code>:list-keys</code> list key bindings
+	<li><code>(</code> move to previous session
+	<li><code>)</code> move to next session
+	<li><code>:kill-server</code>  kill tmux server
+	<li> <code>c</code> create window</li>
+	<li> <code>, </code>rename current window</li>
+	<li> <code>& </code>close current window</li>
+	<li> <code>p </code>previous window</li>
+	<li> <code>n </code>next window</li>
+	<li> <code>0...9</code> selects window of index <code>0...9</code></li>
+	<li> <code>l </code>toogle last active window</li>
+	<li> <code>:swap-window -s src -t dst</code> swaps windows 
+		of index <code>src</code> and <code>dst</code></li>
+	<li> <code>:swap-window -t -1´</code> moves current window
 		to the left by one position</li>
-	<li> <pre>; </pre>toogle last active pane</li>
-	<li> <pre>% </pre>split pane vartically</li>
-	<li> <pre>" </pre>split pane horizontaly</li>
-	<li> <pre>{ </pre>move current pane left</li>
-	<li> <pre>} </pre>move current pane right</li>
-	<li> <pre>horizontal-arrow-key´</pre>
+	<li> <code>; </code>toogle last active pane</li>
+	<li> <code>% </code>split pane vartically</li>
+	<li> <code>" </code>split pane horizontaly</li>
+	<li> <code>{ </code>move current pane left</li>
+	<li> <code>} </code>move current pane right</li>
+	<li> <code>horizontal-arrow-key´</code>
 		switch pane in the arrow direction</li>
-	<li> <pre>spacebar´</pre> toogle pane layouts</li>
-	<li> <pre>o </pre>switch to next pane</li>
-	<li> <pre>q </pre>show pane numbers</li>
-	<li> <pre>q 0...9´</pre> select pane by number</li>
-	<li> <pre>z </pre>zoom in or out a pane</li>
-	<li> <pre>! </pre>convert current pane into a window</li>
-	<li> <pre>ctrl-b-arrow´</pre> change pane dimentions
+	<li> <code>spacebar´</code> toogle pane layouts</li>
+	<li> <code>o </code>switch to next pane</li>
+	<li> <code>q </code>show pane numbers</li>
+	<li> <code>q 0...9´</code> select pane by number</li>
+	<li> <code>z </code>zoom in or out a pane</li>
+	<li> <code>! </code>convert current pane into a window</li>
+	<li> <code>ctrl-b-arrow´</code> change pane dimentions
 		according to arrow direction</li>
-	<li> <pre>x </pre>close current pane</li>
+	<li> <code>x </code>close current pane</li>
 </ul>
 
 <p>
 tmux has a copy mode which, among other things,
 can copy and scroll old text not shown in the terminal anymore.
 copy mode can be entered, if configured properly, by scrolling with the mouse.
-there's also a keybinding: <pre>cntrl-b [</pre> enters copy mode.
+there's also a keybinding: <code>cntrl-b [</code> enters copy mode.
 </p>
 
 <p>
@@ -164,18 +164,18 @@ a window can be set as currentby pressing enter.
 </p>
 
 <ul>
-	<li><pre>s</pre> enter tree mode without expanding session
-	<li><pre>t</pre> enter tree mode with expanded sessions and windows
+	<li><code>s</code> enter tree mode without expanding session
+	<li><code>t</code> enter tree mode with expanded sessions and windows
 </ul>
 
-pessing <pre>esc</pre> exits any mode (tree, copy, etc).
+pessing <code>esc</code> exits any mode (tree, copy, etc).
 
-tmux reads the configuration file <pre>~/.tmux.conf</pre>
+tmux reads the configuration file <code>~/.tmux.conf</code>
 when the server starts.
 t contains a list of commands to be executed in order.
 a running server can execute another configuration file by:
 
-<p><pre>:source file</pre></p> execute tmux comands in the file
+<p><code>:source file</code></p> execute tmux comands in the file
 
 <h4>other commands</h4>
 <ul>

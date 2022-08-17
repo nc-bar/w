@@ -4,16 +4,16 @@ Download the source code
 
 	git clone https://github.com/nrnrnr/noweb.git
 
-Following the instructions in ´noweb/src/INSTALL´:
+Following the instructions in `noweb/src/INSTALL`:
 
 	$ cd noweb/src
 	$ ./awkname awk	# openbsd uses awk, not nawk
 	
-Now the right ´awk´ will be used.
+Now the right `awk` will be used.
 
 The next step is to set environmental variables for the build process. In
-the ´INSTALL´ file, the author recommends to use a script and not to 
-modify ´Makefile´ directly. Modifying the ´Makefile´ is faster, so,
+the `INSTALL` file, the author recommends to use a script and not to 
+modify `Makefile` directly. Modifying the `Makefile` is faster, so,
 the variables to change are:
 
 	# Adjust these two lines for your ANSI C compiler
@@ -36,7 +36,7 @@ the variables to change are:
 	TEXINPUTS=/home/ncb/bin/tex/inputs
 	ELISP=/dev/null
 
-To install, first issue (in ´noweb/src/´):
+To install, first issue (in `noweb/src/`):
 
 	$ make boot		# to prevent using noweb to build noweb
 	$ make all install	# build and move files to the right places

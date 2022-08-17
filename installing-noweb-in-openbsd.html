@@ -1,18 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="Description" content="Personal website">
-	<meta name="author" content="Nicolas Barbeito">
-	<title>ncb.ar</title>
-	<style>
-		body {
-			margin-left: 2em;
-			margin-right: 2em;
-		}
-	</style>
-</head>
 <h1 id="Notes%20for%20installing%20%3Cem%3Enoweb%3C/em%3E%20in%20openbsd%207.1">Notes for installing <em>noweb</em> in openbsd 7.1</h1>
 
 <p>Download the source code</p>
@@ -20,17 +5,17 @@
 <pre><code>git clone https:&#47;&#47;github.com&#47;nrnrnr&#47;noweb.git
 </code></pre>
 
-<p>Following the instructions in ´noweb&#47;src&#47;INSTALL´:</p>
+<p>Following the instructions in <code>noweb&#47;src&#47;INSTALL</code>:</p>
 
 <pre><code>$ cd noweb&#47;src
 $ .&#47;awkname awk # openbsd uses awk, not nawk
 </code></pre>
 
-<p>Now the right ´awk´ will be used.</p>
+<p>Now the right <code>awk</code> will be used.</p>
 
 <p>The next step is to set environmental variables for the build process. In
-the ´INSTALL´ file, the author recommends to use a script and not to 
-modify ´Makefile´ directly. Modifying the ´Makefile´ is faster, so,
+the <code>INSTALL</code> file, the author recommends to use a script and not to 
+modify <code>Makefile</code> directly. Modifying the <code>Makefile</code> is faster, so,
 the variables to change are:</p>
 
 <pre><code># Adjust these two lines for your ANSI C compiler
@@ -54,7 +39,7 @@ TEXINPUTS=&#47;home&#47;ncb&#47;bin&#47;tex&#47;inputs
 ELISP=&#47;dev&#47;null
 </code></pre>
 
-<p>To install, first issue (in ´noweb&#47;src&#47;´):</p>
+<p>To install, first issue (in <code>noweb&#47;src&#47;</code>):</p>
 
 <pre><code>$ make boot     # to prevent using noweb to build noweb
 $ make all install  # build and move files to the right places
@@ -71,5 +56,3 @@ $ make all install  # build and move files to the right places
 <li><a href="https://www.cs.tufts.edu/%7Enr/noweb/">https:&#47;&#47;www.cs.tufts.edu&#47;~nr&#47;noweb&#47;</a></li>
 <li><a href="https://github.com/nrnrnr/noweb">https:&#47;&#47;github.com&#47;nrnrnr&#47;noweb</a></li>
 </ul>
-</body>
-</html>
