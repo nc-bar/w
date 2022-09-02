@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" content="Personal website">
+	<meta name="author" content="Nicolas Barbeito">
+	<title>ncb.ar</title>
+	<style>
+		body {
+			margin-left: 2em;
+			margin-right: 2em;
+		}
+	</style>
+</head>
+<!-- this file was generated automatically by noweave; better not edit it-->
+<html><head><title>bintree.go.nw</title></head><body><h3> <a name="NWD27Risx-1">A tree implementation in go and noweb </a></h3>
+
+<p> This is an implementation to test <b>literate programming</b> using <code>noweb</code> and <code>go</code>.</p>
+
+<h3> A tree representation </h3>
+
+I'll represent a tree using an <code>struct</code> and pointers. A node will be represented by
+
+<pre><a name="NW27Risx-1JQ8TG-1" href="#NWD27Risx-1"><dfn>&lt;node representation&gt;=</dfn></a> <b>(<a href="#NWD27Risx-8">U-&gt;</a>)</b>
+type Node Struct {
+        Key     int
+        Value   int
+        Left    *Node
+        Right   *Node
+        Parent  *Node
+}
+
+</pre><p><a name="NWD27Risx-2">A tree will be represented as a set of Nodes which are connected through pointers.</a>
+
+<h3> <a name="NWD27Risx-3">Insert node in a tree </a></h3>
+
+<p>The implementation of the insert procedure will be recursive. There are three cases when inserting a node: </p> 
+
+<pre><a name="NW27Risx-3gdLio-1" href="#NWD27Risx-3"><dfn>&lt;insert&gt;=</dfn></a> <b>(<a href="#NWD27Risx-8">U-&gt;</a>)</b>
+func (tree *Node) Insert(key, value int) *Node {
+        <a name="NW27Risx-3gdLio-1-u1" href="#NWD27Risx-4"><i>&lt;insert if tree is empty&gt;</i></a>
+        <a name="NW27Risx-3gdLio-1-u2" href="#NWD27Risx-5"><i>&lt;insert if root has a bigger key&gt;</i></a>
+        <a name="NW27Risx-3gdLio-1-u3" href="#NWD27Risx-6"><i>&lt;insert if root has a lower key or equal&gt;</i></a>
+}
+
+</pre><p><p><a name="NWD27Risx-4">If the tree is empty, just create a new node and place it as a root:</a>
+
+<pre><a name="NW27Risx-2VdYv2-1" href="#NWD27Risx-4"><dfn>&lt;insert if tree is empty&gt;=</dfn></a> <b>(<a href="#NWD27Risx-3">&lt;-U</a>)</b>
+if tree == nil {
+        return &amp;Node {
+                Key: key,
+                Value: value,
+        }
+}
+
+</pre><p><a name="NWD27Risx-5">In the case the new key is lower than the one on the root, look for a place at the left of the root (i.e. </a><code>tree.Left</code>). If the root has no left child, then that's the place to put it.
+
+<pre><a name="NW27Risx-3yk0Kv-1" href="#NWD27Risx-5"><dfn>&lt;insert if root has a bigger key&gt;=</dfn></a> <b>(<a href="#NWD27Risx-3">&lt;-U</a>)</b>
+if key &lt; tree.Key {
+        if tree.Left == nil {
+                tree.Left = &amp;Node {
+                        key: key,
+                        Value: value,
+                        Parent: tree,
+                }
+        }
+        return tree.Left
+else {
+        return Tree.Left.Insert(key, value)
+}
+
+</pre><p><a name="NWD27Risx-6">The remaining case is the same as the previous code but using the right child of the root.</a>
+
+<pre><a name="NW27Risx-2MCPnx-1" href="#NWD27Risx-6"><dfn>&lt;insert if root has a lower key or equal&gt;=</dfn></a> <b>(<a href="#NWD27Risx-3">&lt;-U</a>)</b>
+if key &lt; tree.Key {
+        if tree.Right == nil {
+                tree.Right = &amp;Node {
+                        key: key,
+                        Value: value,
+                        Parent: tree,
+                }       
+        }
+        return tree.Right
+else {
+        return Tree.Right.Insert(key, value)
+}
+
+</pre><p><b><a name="NWD27Risx-7">Comment:</a></b> the case in which the key is equal to the root's key, a new Node is created even though that's not the most efficient whay to do it, I think the code is cleaner this way. 
+
+<h3><a name="NWD27Risx-8">The entire code</a></h3>
+
+<pre><a name="NW27Risx-1p0Y9w-1" href="#NWD27Risx-8"><dfn>&lt;*&gt;=</dfn></a>
+package binTree
+
+<a name="NW27Risx-1p0Y9w-1-u1" href="#NWD27Risx-1"><i>&lt;node representation&gt;</i></a>
+<a name="NW27Risx-1p0Y9w-1-u2" href="#NWD27Risx-3"><i>&lt;insert&gt;</i></a>
+</pre>
+
+<ul>
+<li><a href="#NWD27Risx-8"><i>&lt;*&gt;</i></a>: <a href="#NWD27Risx-8">D1</a>
+<li><a href="#NWD27Risx-3"><i>&lt;insert&gt;</i></a>: <a href="#NWD27Risx-3">D1</a>, <a href="#NWD27Risx-8">U2</a>
+<li><a href="#NWD27Risx-5"><i>&lt;insert if root has a bigger key&gt;</i></a>: <a href="#NWD27Risx-3">U1</a>, <a href="#NWD27Risx-5">D2</a>
+<li><a href="#NWD27Risx-6"><i>&lt;insert if root has a lower key or equal&gt;</i></a>: <a href="#NWD27Risx-3">U1</a>, <a href="#NWD27Risx-6">D2</a>
+<li><a href="#NWD27Risx-4"><i>&lt;insert if tree is empty&gt;</i></a>: <a href="#NWD27Risx-3">U1</a>, <a href="#NWD27Risx-4">D2</a>
+<li><a href="#NWD27Risx-1"><i>&lt;node representation&gt;</i></a>: <a href="#NWD27Risx-1">D1</a>, <a href="#NWD27Risx-8">U2</a>
+</ul>
+<ul>
+</ul>
+</body></html>
+
+</body>
+</html>
