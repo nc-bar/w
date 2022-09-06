@@ -4,7 +4,7 @@
 
 Nicolas Barbeito
 
-nicolaspbarbeito at gmail.com
+nicolaspbarbeito at gmail dot com
 
 [github](https://github.com/nc-bar)
 
@@ -29,10 +29,6 @@ nicolaspbarbeito at gmail.com
 
 [ Installing Alpine linux. ](/alpine-install.html)
 
-[tmux](/tmux.html)
-
-[ed](/ed.html)
-
 [Installing noweb in openbsd](/installing-noweb-in-openbsd.html)
 
 [ 1-2-2-5 ](/1225.html)
@@ -43,5 +39,4 @@ nicolaspbarbeito at gmail.com
 
 [Extending the file metaphor](extending-the-file-metaphor.html)
 
-* * *
 
