@@ -10,8 +10,6 @@ nicolaspbarbeito at gmail.com
 
 * * *
 
-### Series
-
 [Relational Databases](/db/index.html)
 
   * [Relational Model](/db/rm.html)
@@ -27,15 +25,7 @@ nicolaspbarbeito at gmail.com
   * [Memory Management](/os/mem.html)
   * [File Systems](/os/fs.html)
 
-* * *
-
-### Articles
-
 [ Literate programming attempt ](/bintree.html)
-
-* * *
-
-### Cheatsheets - Tutorials
 
 [ Installing Alpine linux. ](/alpine-install.html)
 
@@ -45,15 +35,11 @@ nicolaspbarbeito at gmail.com
 
 [Installing noweb in openbsd](/installing-noweb-in-openbsd.html)
 
-* * *
-
-### Misc.
-
 [ 1-2-2-5 ](/1225.html)
 
 * * *
 
-### I don't know what i'm talking about
+### I don't know what i'm talking about:
 
 [Extending the file metaphor](extending-the-file-metaphor.html)
 
