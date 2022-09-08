@@ -1,30 +1,20 @@
 ## Extending the file metaphor
 
-Unix included security features from the time it introduced fle permissions
+The simplest mechanism providing security in Unix operating systems uses file permissions
 and users. Files have owners, both groups and users, and a set of permissions.
 For example:
 
-`
-
-    
-    
-    d-rwxr-xr-x M 0 ncb ncb      0 Aug  6 12:24 forth
-    d-rwxr-xr-x M 0 ncb ncb      0 Aug  3 23:03 groff
-    --rw-r--r-- M 0 ncb ncb   1596 Jul 31 18:11 installing-noweb-in-openbsd.md
-    d-rwxr-xr-x M 0 ncb ncb      0 Aug  5 15:47 ncb.ar
-    
-
-`
+	d-rwxr-xr-x M 0 ncb ncb      0 Aug  6 12:24 forth
+	d-rwxr-xr-x M 0 ncb ncb      0 Aug  3 23:03 groff
+	--rw-r--r-- M 0 ncb ncb   1596 Jul 31 18:11 installing-noweb-in-openbsd.md
+	d-rwxr-xr-x M 0 ncb ncb      0 Aug  5 15:47 ncb.ar
 
 The list above is a list of files and directories (the latter beign just a
 kind of file). The most important part of every item, concerning security, are
 the ownership and the permissions flags:
 
-    
-    
-    --rw-r--r-- ncb ncb      installing-noweb-in-openbsd.md
-    d-rwxr-xr-x ncb ncb      ncb.ar
-    
+	--rw-r--r-- ncb ncb      installing-noweb-in-openbsd.md
+	d-rwxr-xr-x ncb ncb      ncb.ar
 
 The second and third columns say that the `ncb` user and the `ncb` group own
 the file.
@@ -34,47 +24,34 @@ The first column is a string of flags which say who can `read`, `open` or
 that `installing-noweb-in-openbsd.md` is a normal file; the second row says
 that `ncb.ar` is a directory (`d`).
 
-The last three triplets set the `owner` user, `group` owner and `other` users
+The last three triplets set the owner `user`, `group` owner and `other` users
 permissions. Letters `r`, `w` and `x` denote `read`, `write` and `execute`:
 
-    
-    
-    	--rw-r--r-- ncb ncb      installing-noweb-in-openbsd.md
-    	d-rwxr-xr-x ncb ncb      ncb.ar
-    
+	--rw-r--r-- ncb ncb      installing-noweb-in-openbsd.md
+	d-rwxr-xr-x ncb ncb      ncb.ar
 
 In this case, the user `ncb` can `r`ead and `w`rite the `installing-noweb-in-
 openbsd.md` file but it can't e`x`ecute it. The `d` in the beginning of the
-second row implies the file is a directory; the execution permission in a
+second row implies that the file is a directory; the execution permission in a
 directory means it can be opened.
 
-This scheme is very flexible and can be used to secure the access to files. If
-that is the case, why not extend it to everything? I mean: want to launch a
-process? you need permissions to open and write into `/proc`, after all,
-creating a process from an executable file could be done by:
+If all resources the operating system provides are exported through the file 
+system, the same mechanism could be used to provide security.
 
-    
-    
-    	cp a.out /proc/user/
-    
+For example, if the user attempting to launch a process permissions to open and write into 
+`/proc`, creating a process from an executable file could be done by:
 
-Want to open a socket?
-
+	cp a.out /proc/user/
     
-    
-    	fp = fopen("/sockets/some-name", RW);
-    
-
-By extending the file methaphor, all the different interfaces and permissions
+By turning everything into a file system, all the different interfaces and permissions
 merge into the file system. The programmer doesn't need to learn other system
 calls and their permissions and restrictions. Libraries would also be
 simplified, after all many syscalls would just be familiar operations on
 files.
 
-Another interesting application would be to restrict a process capabilities by
-restricting it's view of the file system. For example, if some server should
-never send or receive packets from an interface, just unmount that part of the
-file system. Something similar to openBSD's
-[unveil](https://man.openbsd.org/unveil.2). A process could unmount some
-filesystem and then `exec` into another process which can't re-mount it.
-
+Another interesting application would be to restrict a process capabilities. The 
+way to achive it today is to use containers or virtual machines, or if security 
+is not a concern, a chroot. (OpenBSD created another method: 
+[unveil](https://man.openbsd.org/unveil.2) and [pledge](https://man.openbsd.org/pledge)).
+If a system call is migrated into an object in the filesystem, usual file permissions could
+restrict access to it.
