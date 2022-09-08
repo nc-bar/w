@@ -1,4 +1,4 @@
-## Extending the file metaphor
+# Extending the file metaphor
 
 The simplest mechanism providing security in Unix operating systems uses file permissions
 and users. Files have owners, both groups and users, and a set of permissions.
