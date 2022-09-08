@@ -374,26 +374,7 @@ If the kernel wants to begin the execution of a program, it needs to point the
 cpu's instruction pointer to the first instruction in the text segment, point
 the stack register to the correct memory address, and a lot more.
 
-* * *
-
-As a short aside, why do stacks grow downwards while heaps grow upwards? I
-didn't know why, and assumed it was because early processors were design to
-run only a single process, and so, if you want to be able to use the most
-memory you would set the stack to begin at the biggest memory address and let
-it grow downwards, and do the opposite with the code. Then I found this quote
-from [Stanley Mazor](https://en.wikipedia.org/wiki/Stanley_Mazor):
-
-> The stack pointer was chosen to run "downhill" (with the stack advancing
-> toward lower memory) to simplify indexing into the stack from the user's
-> program (positive indexing) and to simplify displaying the contents of the
-> stack from a front panel.
-
-So maybe it's just an example of a design decision carried in time for
-backwards compatibility. Not all architectures follow this design.
-
-* * *
-
-Back to processes. The operating system needs a way to keep track of the
+The operating system needs a way to keep track of the
 different processes, the resources they use, and the state they are in. The
 structure used to represent a process is called the Process Control Block
 (PCB) or Task Control Block (TCB). This structure is defined by the kernel and
